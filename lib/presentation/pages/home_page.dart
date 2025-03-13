@@ -1,6 +1,7 @@
+import 'package:app_loja_frontend/presentation/viewmodels/user_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/produto_model.dart';
+import '../../data/models/produto_model.dart';
 import '../viewmodels/produto_viewmodel.dart';
 
 class HomePage extends StatefulWidget {
@@ -12,6 +13,7 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> {
   String searchQuery = "";
+   int _selectedIndex = 0; // Índice da página selecionada
 
   @override
   void initState() {
@@ -31,9 +33,28 @@ class HomePageState extends State<HomePage> {
   }
 
   void _logout() {
-    final viewModel = Provider.of<ProdutoViewModel>(context, listen: false);
-    viewModel.logout();
+    final userViewModel = Provider.of<UserViewModel>(context, listen: false);
+    userViewModel.logout();
     setState(() {});
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    // Navegação entre as páginas
+    switch (index) {
+      case 0:
+        Navigator.popAndPushNamed(context, '/');
+        break;
+      case 1:
+        Navigator.pushNamed(context, '/carrinho');
+        break;
+      case 2:
+        Navigator.popAndPushNamed(context, '/meus-pedidos');
+        break;
+    }
   }
 
   @override
@@ -43,10 +64,10 @@ class HomePageState extends State<HomePage> {
         title: const Text('Produtos', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.blueAccent,
         actions: [
-          Consumer<ProdutoViewModel>(
-            builder: (context, viewModel, child) {
-              final isLoggedIn = viewModel.isLoggedIn;
-              final username = viewModel.username;
+          Consumer<UserViewModel>(
+            builder: (context, userViewModel, child) {
+              final isLoggedIn = userViewModel.isLoggedIn;
+              final username = userViewModel.username;
 
               return isLoggedIn
                   ? Row(
@@ -73,6 +94,26 @@ class HomePageState extends State<HomePage> {
       ),
       drawer: _buildDrawer(context),
       body: _buildBody(),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Início',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Carrinho',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list_alt),
+            label: 'Meus Pedidos',
+          ),
+        ],
+        selectedItemColor: Colors.blueAccent,
+        unselectedItemColor: Colors.grey,
+      ),
     );
   }
 
@@ -107,10 +148,22 @@ class HomePageState extends State<HomePage> {
               Navigator.popAndPushNamed(context, '/carrinho');
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('Sair'),
-            onTap: _logout,
+          Consumer<UserViewModel>(
+            builder: (context, userViewModel, child) {
+              return userViewModel.isLoggedIn
+                  ? ListTile(
+                      leading: const Icon(Icons.logout),
+                      title: const Text('Sair'),
+                      onTap: _logout,
+                    )
+                  : ListTile(
+                      leading: const Icon(Icons.login),
+                      title: const Text('Login'),
+                      onTap: () {
+                        Navigator.popAndPushNamed(context, '/login');
+                      },
+                    );
+            },
           ),
         ],
       ),
@@ -252,27 +305,33 @@ class HomePageState extends State<HomePage> {
                         fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12.0),
-                  ElevatedButton(
-          onPressed: () {
-            if (viewModel.isLoggedIn) {
-              viewModel.adicionarAoCarrinho(produto);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Produto adicionado ao carrinho!')),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Faça login para adicionar ao carrinho!')),
-              );
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blueAccent,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-          ),
-          child: const Text('Comprar'),
-        ),
+                  Consumer<UserViewModel>(
+                    builder: (context, userViewModel, child) {
+                      return ElevatedButton(
+                        onPressed: () {
+                          if (userViewModel.isLoggedIn) {
+                            viewModel.adicionarAoCarrinho(produto);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Produto adicionado ao carrinho!')),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Faça login para adicionar ao carrinho!')),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueAccent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                        ),
+                        child: const Text('Comprar'),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),

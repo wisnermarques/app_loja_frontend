@@ -1,16 +1,26 @@
-import 'package:app_loja_frontend/views/carrinho_page.dart';
+import 'package:app_loja_frontend/data/repository/user_repository.dart';
+import 'package:app_loja_frontend/presentation/viewmodels/user_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'viewmodels/produto_viewmodel.dart';
-import 'views/home_page.dart';
-import 'views/login_page.dart'; // Import other pages if needed
+
+import 'data/repository/produto_repository.dart';
+import 'presentation/pages/carrinho_page.dart';
+import 'presentation/pages/home_page.dart';
+import 'presentation/pages/login_page.dart';
+import 'presentation/viewmodels/produto_viewmodel.dart';
+import 'services/api_service.dart';
 
 void main() {
+
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ProdutoViewModel()),
-        // Add other providers here if needed
+        ChangeNotifierProvider(
+          create: (_) => ProdutoViewModel(ProdutoRepository(ApiService())),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => UserViewModel(UserRepository(ApiService())),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -28,12 +38,11 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: '/', // Default route
+      initialRoute: '/',
       routes: {
-        '/': (context) => const HomePage(), // Home route
-        '/login': (context) => const LoginPage(), 
+        '/': (context) => const HomePage(),
+        '/login': (context) => const LoginPage(),
         '/carrinho': (context) => const CarrinhoPage(),
-        // Add other routes here
       },
     );
   }

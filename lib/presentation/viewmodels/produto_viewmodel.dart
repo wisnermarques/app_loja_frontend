@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import '../models/produto_model.dart';
-import '../services/api_service.dart';
+import '../../data/models/produto_model.dart';
+import '../../data/repository/produto_repository.dart';
+
 
 class ProdutoViewModel with ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final ProdutoRepository _produtoRepository;
   List<Produto> _produtos = [];
   final List<Produto> _carrinho = [];
   bool _isLoading = false;
@@ -15,6 +16,8 @@ class ProdutoViewModel with ChangeNotifier {
   int _paginaAtual = 1; // Página inicial
   bool _temMaisPaginas = true; // Indica se há mais páginas para carregar
   int _totalPaginas = 1; // Total de páginas, ajustado conforme a resposta da API
+
+  ProdutoViewModel(this._produtoRepository);
 
   List<Produto> get produtos => _produtos;
   List<Produto> get carrinho => _carrinho;
@@ -36,16 +39,16 @@ class ProdutoViewModel with ChangeNotifier {
     notifyListeners();
 
     try {
-      var resposta = await _apiService.getProdutos(page: _paginaAtual);
-      _produtos = resposta['produtos']; // Ajuste para a chave 'produtos'
+      var resposta = await _produtoRepository.fetchProdutos(page: _paginaAtual);
+      _produtos = resposta['produtos'];
 
       // Verifica se há mais páginas
       _temMaisPaginas = resposta['nextPage'] != null;
 
       // Calcula o total de páginas (assumindo 10 produtos por página)
-      int count = resposta['count']; // Ajuste conforme a API
-      int produtosPorPagina = 10; // Defina conforme sua API
-      _totalPaginas = (count / produtosPorPagina).ceil(); // Arredonda para cima
+      int count = resposta['count'];
+      int produtosPorPagina = 10;
+      _totalPaginas = (count / produtosPorPagina).ceil();
     } catch (e) {
       _errorMessage = 'Erro ao carregar produtos: $e';
     }
@@ -56,27 +59,32 @@ class ProdutoViewModel with ChangeNotifier {
 
   /// **Carrega mais produtos conforme a paginação**
   Future<void> carregarPagina(int pagina) async {
-    if (pagina <= 0 || pagina > _totalPaginas || _isLoadingMore) return;
+     _produtos = [];
+  print('Carregando página: $pagina');
+  if (pagina <= 0 || pagina > _totalPaginas || _isLoadingMore) return;
 
-    _paginaAtual = pagina;
-    _isLoadingMore = true;
-    notifyListeners();
+  _paginaAtual = pagina;
+  _isLoadingMore = true;
+  notifyListeners();
 
-    try {
-      var resposta = await _apiService.getProdutos(page: _paginaAtual);
-      if (pagina == 1) {
-        _produtos = resposta['produtos']; // Ajuste para a chave 'produtos'
-      } else {
-        _produtos.addAll(resposta['produtos']); // Ajuste para a chave 'produtos'
-      }
-      _temMaisPaginas = resposta['nextPage'] != null;
-    } catch (e) {
-      _errorMessage = 'Erro ao carregar produtos: $e';
+  try {
+    var resposta = await _produtoRepository.fetchProdutos(page: _paginaAtual);
+    print('Produtos carregados: ${resposta['produtos']}');
+    if (pagina == 1) {
+      _produtos = resposta['produtos'];
+    } else {
+      _produtos.addAll(resposta['produtos']);
     }
-
-    _isLoadingMore = false;
-    notifyListeners();
+    _temMaisPaginas = resposta['nextPage'] != null;
+    print('Tem mais páginas: $_temMaisPaginas');
+  } catch (e) {
+    _errorMessage = 'Erro ao carregar produtos: $e';
+    print(_errorMessage);
   }
+
+  _isLoadingMore = false;
+  notifyListeners();
+}
 
   /// **Adiciona um produto ao carrinho**
   void adicionarAoCarrinho(Produto produto) {
@@ -92,36 +100,6 @@ class ProdutoViewModel with ChangeNotifier {
 
   /// **Limpa o carrinho**
   void limparCarrinho() {
-    _carrinho.clear();
-    notifyListeners();
-  }
-
-  /// **Realiza o login e armazena o token**
-  Future<bool> login(String username, String password) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      _token = await _apiService.login(username, password);
-      _username = username;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _token = null;
-      _username = null;
-      _errorMessage = 'Erro ao fazer login: Credenciais inválidas';
-      return false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  /// **Realiza o logout**
-  void logout() {
-    _token = null;
-    _username = null;
     _carrinho.clear();
     notifyListeners();
   }

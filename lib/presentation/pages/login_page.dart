@@ -1,6 +1,7 @@
+import 'package:app_loja_frontend/presentation/viewmodels/user_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../viewmodels/produto_viewmodel.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -21,7 +22,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   login() async {
-    final viewModel = Provider.of<ProdutoViewModel>(context, listen: false);
+    final viewModel = Provider.of<UserViewModel>(context, listen: false);
     final username = usernameController.text;
     final senha = senhaController.text;
 

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/produto_model.dart';
+import '../data/models/produto_model.dart';
 
 class ApiService {
   final String baseUrl = 'http://127.0.0.1:8000/api';
