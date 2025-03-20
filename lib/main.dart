@@ -1,5 +1,8 @@
 import 'package:app_loja_frontend/data/repository/user_repository.dart';
+import 'package:app_loja_frontend/data/repository/venda_repository.dart';
+import 'package:app_loja_frontend/presentation/pages/meus_pedidos_page.dart';
 import 'package:app_loja_frontend/presentation/viewmodels/user_viewmodel.dart';
+import 'package:app_loja_frontend/presentation/viewmodels/venda_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -20,6 +23,9 @@ void main() {
         ),
         ChangeNotifierProvider(
           create: (_) => UserViewModel(UserRepository(ApiService())),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => VendaViewModel(VendaRepository(ApiService())),
         ),
       ],
       child: const MyApp(),
@@ -43,6 +49,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => const HomePage(),
         '/login': (context) => const LoginPage(),
         '/carrinho': (context) => const CarrinhoPage(),
+        '/meus-pedidos': (context) => const ClientePageVenda(),
       },
     );
   }

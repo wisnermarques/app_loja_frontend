@@ -1,5 +1,8 @@
+import 'package:app_loja_frontend/presentation/viewmodels/user_viewmodel.dart';
+import 'package:app_loja_frontend/presentation/viewmodels/venda_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../data/models/venda.dart';
 import '../viewmodels/produto_viewmodel.dart';
 
 class CarrinhoPage extends StatelessWidget {
@@ -8,8 +11,49 @@ class CarrinhoPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<ProdutoViewModel>(context);
+    final vendaViewModel = Provider.of<VendaViewModel>(context);
+    final userViewModel = Provider.of<UserViewModel>(context);
     final carrinho = viewModel.carrinho;
-    final total = carrinho.fold(0.0, (sum, item) => sum + item.preco);
+
+    // Calcular o total
+    final total = carrinho.fold(
+      0.0,
+      (sum, item) => sum + (item.precoUnitario * item.quantidade),
+    );
+
+    Future<void> finalizarCompra(BuildContext context) async {
+      if (carrinho.isEmpty) return;
+
+      int? clienteId = await userViewModel.getClienteId();
+
+      if (clienteId == null) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erro ao obter cliente. Faça login novamente.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      final venda = Venda(
+        clienteId: clienteId,
+        itens: carrinho,
+        total: total,
+      );
+
+      print('Token antes de realizar a venda: ${userViewModel.token}');
+      print('Venda a ser enviada: ${venda.toJson()}');
+
+      await vendaViewModel.realizarVenda(userViewModel.token!, venda);
+      viewModel.limparCarrinho();
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Compra finalizada com sucesso!')),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -27,33 +71,36 @@ class CarrinhoPage extends StatelessWidget {
                   child: ListView.builder(
                     itemCount: carrinho.length,
                     itemBuilder: (context, index) {
-                      final produto = carrinho[index];
+                      final item = carrinho[index];
                       return Card(
                         margin: const EdgeInsets.symmetric(
                             vertical: 8.0, horizontal: 16.0),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.0)),
                         child: ListTile(
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(8.0),
-                            child: produto.imagemUrl.isNotEmpty
-                                ? Image.network(
-                                    produto.imagemUrl,
-                                    width: 50,
-                                    height: 50,
-                                    fit: BoxFit.cover,
-                                  )
-                                : const Icon(Icons.image, size: 50, color: Colors.grey),
+                          title: Text(item.produtoNome),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Preço Unitário: R\$ ${item.precoUnitario.toStringAsFixed(2)}'),
+                              Text('Quantidade: ${item.quantidade}'),
+                            ],
                           ),
-                          title: Text(produto.nome,
-                              style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
-                          subtitle: Text('R\$ ${produto.preco.toStringAsFixed(2)}'),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.remove_circle, color: Colors.red),
-                            onPressed: () {
-                              viewModel.removerDoCarrinho(produto);
-                            },
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.remove),
+                                onPressed: () {
+                                  viewModel.atualizarQuantidade(item, item.quantidade - 1);
+                                },
+                              ),
+                              Text('${item.quantidade}'),
+                              IconButton(
+                                icon: const Icon(Icons.add),
+                                onPressed: () {
+                                  viewModel.atualizarQuantidade(item, item.quantidade + 1);
+                                },
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -64,25 +111,11 @@ class CarrinhoPage extends StatelessWidget {
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      Text('Total: R\$ ${total.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 12.0),
+                      Text('Total: R\$ ${total.toStringAsFixed(2)}'),
                       ElevatedButton(
-                        onPressed: () {
-                          if (carrinho.isNotEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Compra finalizada com sucesso!')),
-                            );
-                            viewModel.limparCarrinho();
-                          }
+                        onPressed: () async {
+                          await finalizarCompra(context);
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0)),
-                        ),
                         child: const Text('Finalizar Compra'),
                       ),
                     ],
