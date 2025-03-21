@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../data/models/produto_model.dart';
 import '../data/models/venda.dart';
+import '../data/models/cliente_model.dart';
 
 class ApiService {
   final String baseUrl = 'http://127.0.0.1:8000/api';
@@ -138,6 +139,23 @@ class ApiService {
     } else {
       throw Exception(
           'Erro ao buscar cliente (Status: ${response.statusCode})');
+    }
+  }
+
+  Future<void> register(Cliente cliente, String password) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/registrar/'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        ...cliente.toJson(), // Converte o objeto Cliente para JSON
+        'password': password, // Adiciona a senha separadamente
+      }),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Falha ao registrar usuário: ${response.body}');
     }
   }
 }

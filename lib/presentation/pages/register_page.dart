@@ -1,65 +1,57 @@
-import 'package:app_loja_frontend/presentation/viewmodels/user_viewmodel.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
-  final usernameController = TextEditingController();
+class _RegisterPageState extends State<RegisterPage> {
+  final nomeController = TextEditingController();
+  final emailController = TextEditingController();
   final senhaController = TextEditingController();
+  final confirmarSenhaController = TextEditingController();
 
   @override
   void dispose() {
-    usernameController.dispose();
+    nomeController.dispose();
+    emailController.dispose();
     senhaController.dispose();
+    confirmarSenhaController.dispose();
     super.dispose();
   }
 
-  login() async {
-    final viewModel = Provider.of<UserViewModel>(context, listen: false);
-    final username = usernameController.text;
+  void registrar() {
+    final nome = nomeController.text;
+    final email = emailController.text;
     final senha = senhaController.text;
+    final confirmarSenha = confirmarSenhaController.text;
 
-    if (username.isEmpty || senha.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Por favor, preencha todos os campos.')),
-        );
-      }
+    if (nome.isEmpty || email.isEmpty || senha.isEmpty || confirmarSenha.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preencha todos os campos!')),
+      );
       return;
     }
 
-    try {
-      bool sucesso = await viewModel.login(username, senha);
-      if (mounted && sucesso) {
-        Navigator.pushReplacementNamed(context, '/');
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Erro ao fazer login. Verifique suas credenciais.')),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao fazer login: $e')),
-        );
-      }
+    if (senha != confirmarSenha) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('As senhas não coincidem!')),
+      );
+      return;
     }
+
+    // Aqui você pode chamar o método de registro no backend
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Registro realizado com sucesso!')),
+    );
+    Navigator.pop(context);
   }
 
   void cancelar() {
-    Navigator.popAndPushNamed(context, '/');
-  }
-
-  void irParaRegistro() {
-    Navigator.pushNamed(context, '/register');
+    Navigator.pop(context);
   }
 
   @override
@@ -82,20 +74,29 @@ class _LoginPageState extends State<LoginPage> {
               ),
               elevation: 5,
               child: Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.all(24.0),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text(
-                      'Bem-vindo',
+                      'Crie sua conta',
                       style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 20.0),
+                    const SizedBox(height: 16.0),
                     TextField(
-                      controller: usernameController,
+                      controller: nomeController,
                       decoration: InputDecoration(
-                        labelText: 'Usuário',
+                        labelText: 'Nome Completo',
                         prefixIcon: const Icon(Icons.person),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+                      ),
+                    ),
+                    const SizedBox(height: 12.0),
+                    TextField(
+                      controller: emailController,
+                      decoration: InputDecoration(
+                        labelText: 'E-mail',
+                        prefixIcon: const Icon(Icons.email),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
                       ),
                     ),
@@ -109,18 +110,28 @@ class _LoginPageState extends State<LoginPage> {
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
                       ),
                     ),
+                    const SizedBox(height: 12.0),
+                    TextField(
+                      controller: confirmarSenhaController,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        labelText: 'Confirmar Senha',
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+                      ),
+                    ),
                     const SizedBox(height: 20.0),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         ElevatedButton(
-                          onPressed: login,
+                          onPressed: registrar,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blueAccent,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
                             padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
                           ),
-                          child: const Text('Entrar', style: TextStyle(fontSize: 16)),
+                          child: const Text('Registrar', style: TextStyle(fontSize: 16)),
                         ),
                         OutlinedButton(
                           onPressed: cancelar,
@@ -134,9 +145,11 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 12.0),
                     TextButton(
-                      onPressed: irParaRegistro,
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
                       child: const Text(
-                        'Não tem cadastro? Registre-se',
+                        'Já tem uma conta? Faça login',
                         style: TextStyle(fontSize: 14, color: Colors.blueAccent),
                       ),
                     ),
