@@ -138,4 +138,13 @@ class ProdutoViewModel with ChangeNotifier {
     _carrinho.clear();
     notifyListeners();
   }
+
+  Produto? obterProdutoPorId(int id) {
+  try {
+    return _produtos.firstWhere((produto) => produto.id == id);
+  } catch (e) {
+    return null;
+  }
+}
+
 }

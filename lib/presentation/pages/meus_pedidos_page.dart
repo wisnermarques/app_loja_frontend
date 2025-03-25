@@ -82,7 +82,7 @@ class ClientePageVendaState extends State<ClientePageVenda> {
           ? const Center(child: CircularProgressIndicator())
           : _clienteId == null
               ? const Center(
-                  child: Text("Erro ao recuperar os dados do cliente."))
+                  child: Text("Você deve estar logado para visualizar seus pedidos!!!"))
               : Consumer<VendaViewModel>(
                   builder: (context, vendaViewModel, child) {
                     if (vendaViewModel.isLoading) {

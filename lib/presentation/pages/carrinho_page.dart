@@ -1,9 +1,10 @@
-import 'package:app_loja_frontend/presentation/viewmodels/user_viewmodel.dart';
-import 'package:app_loja_frontend/presentation/viewmodels/venda_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../data/models/produto_model.dart';
 import '../../data/models/venda.dart';
 import '../viewmodels/produto_viewmodel.dart';
+import '../viewmodels/user_viewmodel.dart';
+import '../viewmodels/venda_viewmodel.dart';
 
 class CarrinhoPage extends StatelessWidget {
   const CarrinhoPage({super.key});
@@ -18,7 +19,10 @@ class CarrinhoPage extends StatelessWidget {
     // Calcular o total
     final total = carrinho.fold(
       0.0,
-      (sum, item) => sum + (item.precoUnitario * item.quantidade),
+      (sum, item) => sum + (viewModel.produtos.firstWhere(
+        (produto) => produto.id == item.produtoId,
+        orElse: () => Produto(id: 0, nome: '', descricao: '', preco: 0.0, imagemUrl: '', estoque: 0),
+      ).preco * item.quantidade),
     );
 
     Future<void> finalizarCompra(BuildContext context) async {
@@ -72,15 +76,27 @@ class CarrinhoPage extends StatelessWidget {
                     itemCount: carrinho.length,
                     itemBuilder: (context, index) {
                       final item = carrinho[index];
+                      final produto = viewModel.produtos.firstWhere(
+                        (produto) => produto.id == item.produtoId,
+                        orElse: () => Produto(id: 0, nome: '', descricao: '', preco: 0.0, imagemUrl: '', estoque: 0),
+                      );
                       return Card(
                         margin: const EdgeInsets.symmetric(
                             vertical: 8.0, horizontal: 16.0),
                         child: ListTile(
-                          title: Text(item.produtoNome),
+                          leading: produto.imagemUrl.isNotEmpty
+                              ? Image.network(
+                                  produto.imagemUrl,
+                                  width: 50,
+                                  height: 50,
+                                  fit: BoxFit.cover,
+                                )
+                              : const Icon(Icons.image_not_supported, size: 50),
+                          title: Text(produto.nome),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Preço Unitário: R\$ ${item.precoUnitario.toStringAsFixed(2)}'),
+                              Text('Preço Unitário: R\$ ${produto.preco.toStringAsFixed(2)}'),
                               Text('Quantidade: ${item.quantidade}'),
                             ],
                           ),
