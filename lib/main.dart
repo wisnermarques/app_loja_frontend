@@ -1,6 +1,7 @@
 import 'package:app_loja_frontend/data/repository/user_repository.dart';
 import 'package:app_loja_frontend/data/repository/venda_repository.dart';
 import 'package:app_loja_frontend/presentation/pages/meus_pedidos_page.dart';
+import 'package:app_loja_frontend/presentation/pages/sobre_page.dart';
 import 'package:app_loja_frontend/presentation/viewmodels/user_viewmodel.dart';
 import 'package:app_loja_frontend/presentation/viewmodels/venda_viewmodel.dart';
 import 'package:flutter/material.dart';
@@ -57,6 +58,7 @@ class MyApp extends StatelessWidget {
         '/register': (context) => const RegisterPage(),
         '/carrinho': (context) => const CarrinhoPage(),
         '/meus-pedidos': (context) => const ClientePageVenda(),
+        '/sobre': (context) => const SobrePage(),
       },
     );
   }

@@ -70,6 +70,9 @@ class ClientePageVendaState extends State<ClientePageVenda> {
       case 2:
         Navigator.popAndPushNamed(context, '/meus-pedidos');
         break;
+      case 3:
+        Navigator.popAndPushNamed(context, '/sobre');
+        break;
     }
   }
 
@@ -185,6 +188,13 @@ class ClientePageVendaState extends State<ClientePageVenda> {
             title: const Text('Carrinho'),
             onTap: () {
               Navigator.popAndPushNamed(context, '/carrinho');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.contact_support_sharp),
+            title: const Text('Sobre'),
+            onTap: () {
+              Navigator.popAndPushNamed(context, '/sobre');
             },
           ),
           Consumer<UserViewModel>(

@@ -54,6 +54,9 @@ class HomePageState extends State<HomePage> {
       case 2:
         Navigator.popAndPushNamed(context, '/meus-pedidos');
         break;
+      case 3:
+        Navigator.popAndPushNamed(context, '/sobre');
+        break;
     }
   }
 
@@ -110,6 +113,7 @@ class HomePageState extends State<HomePage> {
             icon: Icon(Icons.list_alt),
             label: 'Meus Pedidos',
           ),
+          
         ],
         selectedItemColor: Colors.blueAccent,
         unselectedItemColor: Colors.grey,
@@ -146,6 +150,13 @@ class HomePageState extends State<HomePage> {
             title: const Text('Carrinho'),
             onTap: () {
               Navigator.popAndPushNamed(context, '/carrinho');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.contact_support_sharp),
+            title: const Text('Sobre'),
+            onTap: () {
+              Navigator.popAndPushNamed(context, '/sobre');
             },
           ),
           Consumer<UserViewModel>(
